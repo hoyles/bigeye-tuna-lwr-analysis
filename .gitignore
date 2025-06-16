@@ -47,3 +47,22 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Data files (add specific patterns as needed)
+data/raw/*.csv
+data/raw/*.xlsx
+*.RData
+*.rds
+
+# Large output files
+output/models/*.rds
+output/figures/*.png
+output/figures/*.pdf
+
+# Temporary files
+.Rhistory
+.RData
+.Ruserdata
+*~
+*.tmp
+

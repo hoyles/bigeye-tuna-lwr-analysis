@@ -14,7 +14,8 @@ set.seed(20260830)
 JOBDIR <- file.path(OUT, "tripslope_rep_jobs")
 if (!dir.exists(JOBDIR)) dir.create(JOBDIR, recursive = TRUE)
 NSPLIT <- 100; NPERM <- 100; NWORKER <- 6
-SD_FITTED <- 0.2085          # SD of the predicted trip slopes in Model A (32_)
+invisible(capture.output(vc_ <- gam.vcomp(readRDS(file.path(OUT, "final_model.rds"))$m)))
+SD_FITTED <- (if (is.list(vc_)) vc_$vc else vc_)["s(loglen_c,tripf)", "std.dev"]   # estimated SD of the trip slope, Model A
 
 d <- readRDS(file.path(OUT, "final_dataset.rds"))$d
 d <- d %>% mutate(obs_name = factor(obs_name), tripf = factor(tripf),
@@ -54,7 +55,7 @@ one_rep <- function(job) {
   m <- try(bam(logwt ~ s(loglen, k = 20) + s(obs_name, bs = 're') +
                  s(th, bs = 're') + s(loglen_c, th, bs = 're') + sexf +
                  te(lon, lat, mon, k = c(6,6,4), bs = c('cr','cr','cc')) + yrf,
-               data = dd, family = scat, method = "fREML", discrete = TRUE),
+               data = dd, family = scat, method = "fREML", discrete = TRUE, gamma = 1.4),
            silent = TRUE)
   if (inherits(m, "try-error")) return(NULL)
   labs <- vapply(m$smooth, function(z) z$label, character(1))

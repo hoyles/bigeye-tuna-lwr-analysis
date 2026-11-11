@@ -3,9 +3,13 @@
 
 scripts <- c(
   "32_final_model",                      # analysis dataset, Model A and Model C: run first
-  "24_set_icc", "30_specification_cv", "50_bait_and_operational", "64_hbf_within_trip",
+  "80_gam_refits",                       # before 64_
+  "30_specification_cv", "31_gamma_tuning",
+  "85_gamma_gam",                        # after 31_
+  "81_table5_cv", "61_interaction_cv", "70_hbf_select",
+  "50_bait_and_operational", "64_hbf_within_trip",
   "37_scat_vs_gaussian_final", "38_gaussian_counterpart",
-  "78_trip_curvature_cv", "54_trip_slope_replication", "77_observer_trip_slope_reml",
+  "54_trip_slope_replication", "77_observer_trip_slope_reml",
   "48_observer_vs_trip_lw", "56_trip_slope_delivered",
   "33_spatial_with_trip", "63_spatial_description", "34_regional",
   "15_uniform_baseline", "16_rounding_bias_by_size", "17_rounding_bias_by_weight",

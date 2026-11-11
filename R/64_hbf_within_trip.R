@@ -66,7 +66,7 @@ cat(sprintf("  span used for reporting: %.1f hooks (5th-95th centile of the %d\n
 cat("  non-zero within-trip departures) -- every effect below is quoted over it\n")
 
 HBF_RANGE <- diff(range(d$hbf))
-PUB_PCT   <- 9.83                       # without trip effects, across the full HBF range (section 4.2)
+PUB_PCT   <- readRDS(file.path(OUT, "trip_re_hbf.rds"))$hbf_range_notrip   # HBF effect without trip effects (80_, section 4.2)
 pub_per   <- log(1 + PUB_PCT / 100) / HBF_RANGE
 PUB_SPAN  <- 100 * (exp(pub_per * SPAN) - 1)
 cat(sprintf("  published effect %.2f%% across %.0f hooks -> %.2f%% over this span\n",
@@ -114,13 +114,13 @@ fitg <- function(f, id, dat = d) {
                     substr(digest::digest(deparse(f)), 1, 8), "_REML.rds"))
   if (file.exists(outf)) { cat("  (cached)", id, "\n"); return(readRDS(outf)) }
   t0 <- Sys.time()
-  m <- gam(f, data = dat, family = scat, method = "REML")
+  m <- gam(f, data = dat, family = scat, method = "REML", gamma = 1.4)
   cat(sprintf("  fitted %s in %.1f min", id,
               as.numeric(difftime(Sys.time(), t0, units = "mins"))), "\n")
   saveRDS(m, outf); m
 }
 fit_fast <- function(f, dat = d) bam(f, data = dat, family = scat,
-                                     method = "fREML", discrete = TRUE)
+                                     method = "fREML", discrete = TRUE, gamma = 1.4)
 t0 <- Sys.time()
 m0 <- fitg(F0, "m0"); m1 <- fitg(F1, "m1"); m2 <- fitg(F2, "m2"); m3 <- fitg(F3, "m3")
 m4 <- if (all(is.finite(d$dayfrac))) fitg(F4, "m4") else NULL

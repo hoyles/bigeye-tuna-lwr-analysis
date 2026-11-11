@@ -145,10 +145,16 @@ cat(sprintf("  n = %d | AIC = %.1f | dev.expl = %.2f%% | total edf = %.1f\n",
             nrow(d), AIC(m), summary(m)$dev.expl * 100, sum(m$edf)))
 cat(sprintf("  edf: length %.2f | spatial %.2f | observer %.2f | trip %.2f\n",
             gete("s(loglen)"), gete("te("), gete("s(obs_name)"), gete("s(tripf)")))
-cat(sprintf("  random effect SD: observer %.4f (%.2f%%) | trip %.4f (%.2f%%)\n",
+# The paper reports the ESTIMATED standard deviations (square roots of the variance
+# components). The SD of the predicted effects is smaller, because effects for
+# observers and trips with few fish are shrunk toward zero; it is printed for comparison.
+invisible(capture.output(vcm <- gam.vcomp(m))); vcm <- if (is.list(vcm)) vcm$vc else vcm
+cat(sprintf("  estimated SD: observer %.4f (%.2f%%) | trip %.4f (%.2f%%) | trip slope %.4f\n",
+            vcm["s(obs_name)", "std.dev"], 100*(exp(vcm["s(obs_name)", "std.dev"])-1),
+            vcm["s(tripf)", "std.dev"], 100*(exp(vcm["s(tripf)", "std.dev"])-1), vcm["s(loglen_c,tripf)", "std.dev"]))
+cat(sprintf("  SD of predicted effects: observer %.4f (%.2f%%) | trip %.4f (%.2f%%) | trip slope %.4f (edf %.2f)\n",
             gesd("s(obs_name)"), 100*(exp(gesd("s(obs_name)"))-1),
-            gesd("s(tripf)"), 100*(exp(gesd("s(tripf)"))-1)))
-cat(sprintf("  trip random SLOPE: SD of b across trips %.4f | edf %.2f\n",
+            gesd("s(tripf)"), 100*(exp(gesd("s(tripf)"))-1),
             gesd("s(loglen_c,tripf)"), gete("s(loglen_c,tripf)")))
 sx <- coef(m)[grep("^sexf", names(coef(m)))]
 cat(sprintf("  sex effect (M vs F): %+.4f log units = %+.2f%%\n", sx, 100*(exp(sx)-1)))
@@ -178,7 +184,7 @@ print(out %>% mutate(across(where(is.numeric), ~round(.x, 2))), row.names = FALS
 i110 <- which(LENS == 110)
 cat(sprintf("\n  dip at 110 cm: %+.2f%% (95%% CrI %+.2f to %+.2f) from %d fish within 5 cm\n",
             out$median[i110], out$lo[i110], out$hi[i110], out$n_within_5cm[i110]))
-cat("  published specification gave -2.5%% (CrI -2.9 to -2.1); bam on the new spec gave -1.27%%\n")
+cat("  published specification gave -2.5% (CrI -2.9 to -2.1)\n")
 
 write_csv(out, file.path(OUT, "TableR52_final_nonlinearity.csv"))
 saveRDS(list(m = m, ml = ml, out = out, DROP = DROP),

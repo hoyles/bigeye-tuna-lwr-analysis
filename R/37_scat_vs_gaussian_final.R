@@ -183,6 +183,12 @@ pairtab <- tibble(
     mean(w$crps_fit_scat      - w$crps_fit_gaussian),
     mean(w$crps_full_scat     - w$crps_full_gaussian),
     mean(w$rmse_kg_scat       - w$rmse_kg_gaussian)))
+pairtab$p_paired_t <- c(
+  t.test(w$logscore_fit_scat,  w$logscore_fit_gaussian,  paired = TRUE)$p.value,
+  t.test(w$logscore_full_scat, w$logscore_full_gaussian, paired = TRUE)$p.value,
+  t.test(w$crps_fit_scat,      w$crps_fit_gaussian,      paired = TRUE)$p.value,
+  t.test(w$crps_full_scat,     w$crps_full_gaussian,     paired = TRUE)$p.value,
+  t.test(w$rmse_kg_scat,       w$rmse_kg_gaussian,       paired = TRUE)$p.value)   # the test reported
 pairtab$p_wilcoxon <- c(
   wilcox.test(w$logscore_fit_scat,  w$logscore_fit_gaussian,  paired = TRUE)$p.value,
   wilcox.test(w$logscore_full_scat, w$logscore_full_gaussian, paired = TRUE)$p.value,
@@ -193,7 +199,7 @@ cat("\n--- paired by fold (scaled-t vs Gaussian) ---\n")
 cat("    mean_diff sign: log score positive = scat better; CRPS/RMSE negative = scat better\n")
 print(as.data.frame(pairtab %>%
   mutate(mean_diff = signif(mean_diff, 3),
-         p_wilcoxon = format.pval(p_wilcoxon, digits = 2))), row.names = FALSE)
+         p_paired_t = format.pval(p_paired_t, digits = 2), p_wilcoxon = format.pval(p_wilcoxon, digits = 2))), row.names = FALSE)
 
 cat(sprintf("\nestimated scaled-t degrees of freedom (nu): %.2f\n",
             mean(res$nu, na.rm = TRUE)))

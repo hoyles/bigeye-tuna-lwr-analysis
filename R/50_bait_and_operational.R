@@ -176,7 +176,7 @@ if (file.exists(CVF)) { cv <- readRDS(CVF); cat("\n  (CV cached)\n") } else {
     for (lab in c("base", "bait")) {
       f <- if (lab == "base") BASE_TRIP else paste(BASE_TRIP, "+ baitf")
       m <- try(bam(as.formula(f), data = tr, family = scat, method = "fREML",
-                   discrete = TRUE), silent = TRUE)
+                   discrete = TRUE, gamma = 1.4), silent = TRUE)
       if (inherits(m, "try-error")) next
       # predict with trip effects excluded (test trips are unseen)
       p <- predict(m, newdata = te, type = "link",

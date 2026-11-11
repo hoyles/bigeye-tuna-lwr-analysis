@@ -26,7 +26,7 @@ allf <- da2 %>%
   droplevels() %>% as.data.frame()
 allf <- allf[!allf$obs_name %in% c("obs_091", "obs_113", "obs_175"), ]
 allf$obs_name <- droplevels(allf$obs_name)
-d <- droplevels(draw_one_per_group(allf, "setf"))
+d <- readRDS(file.path(OUT, "final_dataset.rds"))$d   # the analysis dataset (32_)
 cat(sprintf("one fish per set: %d fish (%d F, %d M) | %d trips | %d observers\n\n",
             nrow(d), sum(d$sexf == "F"), sum(d$sexf == "M"),
             nlevels(d$tripf), nlevels(d$obs_name)))

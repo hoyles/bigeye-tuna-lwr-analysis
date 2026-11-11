@@ -70,7 +70,10 @@ run_gam <- function(nm, form, data) {
   cat(sprintf("\nfitting gam %s ...\n", nm)); t0 <- Sys.time()
   m <- gam(form, data = data, family = scat, method = "ML", gamma = 1.4)
   cat(sprintf("  %.1f min\n", as.numeric(difftime(Sys.time(), t0, units = "mins"))))
-  o <- list(aic = AIC(m), sd_obs = sd_of(m, "s(obs_name)"), sd_trip = sd_of(m, "s(tripf)"))
+  invisible(capture.output(v <- gam.vcomp(m))); v <- if (is.list(v)) v$vc else v
+  o <- list(aic = AIC(m), sd_obs = sd_of(m, "s(obs_name)"), sd_trip = sd_of(m, "s(tripf)"),
+            vc_obs = if ("s(obs_name)" %in% rownames(v)) v["s(obs_name)", "std.dev"] else NA,
+            vc_trip = if ("s(tripf)" %in% rownames(v)) v["s(tripf)", "std.dev"] else NA)
   saveRDS(o, f); o
 }
 g_full <- run_gam("full",  F_FULL, d)
@@ -119,7 +122,7 @@ one_rep <- function(job) {
   m <- try(bam(logwt ~ s(loglen, k=20) + s(obs_half, bs='re') + s(tripf, bs='re') +
                  s(loglen_c, tripf, bs='re') +
                  sexf + te(lon, lat, mon, k = c(6,6,4), bs = c('cr','cr','cc')) + yrf,
-               data = dd, family = scat, method = "fREML", discrete = TRUE),
+               data = dd, family = scat, method = "fREML", discrete = TRUE, gamma = 1.4),
            silent = TRUE)
   if (inherits(m, "try-error")) return(NULL)
   labs <- vapply(m$smooth, function(z) z$label, character(1))
@@ -165,7 +168,8 @@ cat(sprintf("  fraction of real partitions with r > the 95th centile of the null
             mean(obs_r$r > quantile(nul_r$r, .95))))
 # what would we expect if the observer effect were entirely real?
 mt <- ob$ntrip[ob$ntrip >= 2]
-r_exp <- g_full$sd_obs^2 / (g_full$sd_obs^2 + g_full$sd_trip^2/mean(pmax(1, mt/2)))
+# from the estimated SDs (the square roots of the variance components), as the paper reports
+r_exp <- g_full$vc_obs^2 / (g_full$vc_obs^2 + g_full$vc_trip^2/mean(pmax(1, mt/2)))
 cat(sprintf("  for reference, r expected if the fitted split were exactly true: %.2f\n", r_exp))
 
 # ------------------------------------------------------------------------------
@@ -187,7 +191,7 @@ one_boot <- function(job) {
   m <- try(bam(logwt ~ s(loglen, k=20) + s(obs_name, bs='re') + s(tripf, bs='re') +
                  s(loglen_c, tripf, bs='re') +
                  sexf + te(lon, lat, mon, k = c(6,6,4), bs = c('cr','cr','cc')) + yrf,
-               data = z, family = scat, method = "fREML", discrete = TRUE),
+               data = z, family = scat, method = "fREML", discrete = TRUE, gamma = 1.4),
            silent = TRUE)
   if (inherits(m, "try-error")) return(NULL)
   labs <- vapply(m$smooth, function(x) x$label, character(1))
@@ -235,6 +239,8 @@ g_multi <- run_gam("multitrip", F_FULL, d_multi)
 cat(sprintf("  observer SD %.2f%% (was %.2f%%) | trip SD %.2f%% (was %.2f%%)\n",
             pct(g_multi$sd_obs), pct(g_full$sd_obs),
             pct(g_multi$sd_trip), pct(g_full$sd_trip)))
+cat(sprintf("  estimated SDs: observer %.2f%% (all observers %.2f%%) | trip %.2f%% (all %.2f%%)\n",
+            pct(g_multi$vc_obs), pct(g_full$vc_obs), pct(g_multi$vc_trip), pct(g_full$vc_trip)))
 
 # ------------------------------------------------------------------------------
 cat("\n=== READING THIS ===\n")

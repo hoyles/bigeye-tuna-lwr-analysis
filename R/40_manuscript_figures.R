@@ -250,14 +250,17 @@ save_fig("Fig07_final_model_terms", width = 11, height = 8, quote({
   par(mfrow = c(2, 3), mar = c(4.5, 4.5, 3, 1))
   plot(m, select = 1, shade = TRUE, las = 1, main = "s(log length)",
        xlab = "log(fork length)", ylab = "Partial effect on log weight")
+  # panel titles give the estimated SDs (square roots of the variance components);
+  # the histograms show predicted effects, whose spread is smaller
+  invisible(capture.output(vcs <- gam.vcomp(m))); vcs <- if (is.list(vcs)) vcs$vc else vcs
   ro <- coef(m)[m$smooth[[2]]$first.para:m$smooth[[2]]$last.para]
   hist(100*(exp(ro) - 1), breaks = 25, col = "grey75", border = "grey40", las = 1,
-       main = sprintf("Observer effects (SD %.2f%%)", 100*(exp(sd(ro)) - 1)),
+       main = sprintf("Observer effects (estimated SD %.2f%%)", 100*(exp(vcs["s(obs_name)", "std.dev"]) - 1)),
        xlab = "Effect on weight at length (%)")
   abline(v = 0, col = "firebrick", lwd = 2)
   rt <- coef(m)[m$smooth[[3]]$first.para:m$smooth[[3]]$last.para]
   hist(100*(exp(rt) - 1), breaks = 25, col = "grey75", border = "grey40", las = 1,
-       main = sprintf("Trip effects (SD %.2f%%)", 100*(exp(sd(rt)) - 1)),
+       main = sprintf("Trip effects (estimated SD %.2f%%)", 100*(exp(vcs["s(tripf)", "std.dev"]) - 1)),
        xlab = "Effect on weight at length (%)")
   abline(v = 0, col = "firebrick", lwd = 2)
   yy <- summary(m)$p.table

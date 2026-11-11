@@ -118,12 +118,12 @@ draw_regions <- function(lwd = 1.2, col = "grey20", labels = TRUE, cex = 0.75) {
 }
 
 # ==============================================================================
-# FIGURE 2 -- sampling coverage, ANALYSIS DATA, with colour ramp and regions
+# FIGURE 3 -- sampling coverage, ANALYSIS DATA, with colour ramp and regions
 # ==============================================================================
 cellof <- function(x) floor(x/GC)*GC + GC/2
 dens_q <- d %>% mutate(clon = cellof(lon), clat = cellof(lat), qtr = ceiling(mon/3)) %>%
   count(clon, clat, qtr, name = "fish")
-save_fig("Fig02_coverage_by_quarter", width = 11, height = 9, quote({
+save_fig("Fig03_coverage_by_quarter", width = 11, height = 9, quote({
   layout(matrix(c(1,2,3,4,5,5), nrow = 3, byrow = TRUE), heights = c(1,1,0.28))
   par(mar = c(4, 4, 3, 1))
   brk <- c(1, 2, 5, 10, 25, 50, 100, 250, 1000)
@@ -149,9 +149,9 @@ save_fig("Fig02_coverage_by_quarter", width = 11, height = 9, quote({
 }))
 
 # ==============================================================================
-# FIGURE 3 -- effort summaries. Trips are shown, as no vessel identifier exists
+# FIGURE 2 -- effort summaries. Trips are shown, as no vessel identifier exists
 # ==============================================================================
-save_fig("Fig03_summary_plots", width = 9, height = 7, quote({
+save_fig("Fig02_summary_plots", width = 9, height = 7, quote({
   par(mfrow = c(2, 2), mar = c(4.5, 4.5, 2, 1))
   barplot(table(d$year), xlab = "Year", ylab = "Fish in analysis dataset", las = 1)
   barplot(tapply(d$obs_name, d$year, n_distinct), xlab = "Year",
